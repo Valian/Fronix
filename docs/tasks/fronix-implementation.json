@@ -1,0 +1,425 @@
+{
+  "project": "fronix",
+  "description": "Build Fronix as a LiveVue successor with shared Phoenix backend, pluggable Vue/React/Svelte adapters, SSR from the start, and E2E-tested feature phases.",
+  "baseline": "Repository pushed to https://github.com/Valian/Fronix. Commits: c6722ff Initial Fronix project, 55a7ad2 Add Fronix architecture roadmap. Current tests: mix test reports 1 doctest, 1 test, 0 failures in ~0.04s. No frontend tooling or Phoenix/LiveView dependencies are implemented yet.",
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Set up project dependencies and frontend skeleton",
+      "description": "Add the foundational Mix and JavaScript tooling without implementing Fronix behavior yet. Update mix.exs with required runtime/dev/test dependencies for Jason, Phoenix, Phoenix LiveView, Jsonpatch, Phoenix Vite, optional SSR/runtime deps, ExDoc, Styler, and e2e-only Phoenix server deps. Add package.json, tsconfig.json, vitest config, basic asset folders under assets/core, assets/vue, assets/react, assets/svelte, and empty public entrypoint files that export only placeholders. Add npm scripts for test, e2e build/test placeholders, and format.",
+      "definition_of_done": [
+        "mix deps.get succeeds",
+        "npm install succeeds",
+        "mix test passes with existing tests",
+        "npm test passes with at least one placeholder frontend test",
+        "assets/core, assets/vue, assets/react, and assets/svelte exist",
+        "package.json exports fronix/vue, fronix/vue/server, fronix/react, fronix/react/server, fronix/svelte, and fronix/svelte/server"
+      ],
+      "status": "pending",
+      "depends_on": [],
+      "files_to_create": [
+        "package.json",
+        "tsconfig.json",
+        "vitest.config.ts",
+        "assets/core/index.ts",
+        "assets/core/index.test.ts",
+        "assets/vue/index.ts",
+        "assets/vue/server.ts",
+        "assets/react/index.tsx",
+        "assets/react/server.tsx",
+        "assets/svelte/index.ts",
+        "assets/svelte/server.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T02",
+      "title": "Implement backend encoding and component payload primitives",
+      "description": "Create the backend data primitives used by all adapters. Implement Fronix.Encoder protocol based on LiveVue.Encoder concepts, including safe struct encoding. Add Fronix.Payload or equivalent helpers for classifying f-* control attributes, wrapper HTML attributes, and user props. Do not render full components yet. Cover collision behavior so f-* attrs are reserved and normal attrs become props.",
+      "definition_of_done": [
+        "Fronix.Encoder exists and supports maps, lists, primitives, and explicitly derived structs",
+        "Control attrs f-component, f-socket, f-ssr, f-diff, f-inject, and f-inject:* are classified as Fronix options",
+        "Non-reserved attrs are preserved as user props",
+        "id, class, and style are treated as wrapper attrs, not component props",
+        "mix test passes with new backend unit tests"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T01"
+      ],
+      "files_to_create": [
+        "lib/fronix/encoder.ex",
+        "lib/fronix/payload.ex",
+        "test/fronix_encoder_test.exs",
+        "test/fronix_payload_test.exs"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T03",
+      "title": "Render generic Fronix component wrappers",
+      "description": "Implement Fronix.component/1 and framework helpers <.vue>, <.react>, and <.svelte>. The generic renderer should output a phx-update=ignore wrapper with data-fronix-* attributes, framework-specific hook names, encoded props, and optional SSR placeholder behavior. Do not implement real SSR or diffs in this task beyond stable data attributes and hook selection.",
+      "definition_of_done": [
+        "Fronix.component/1 renders a wrapper with data-fronix-component and data-fronix-props",
+        "<.vue>, <.react>, and <.svelte> call the generic renderer with distinct hook names",
+        "Rendered hook names are FronixVueHook, FronixReactHook, and FronixSvelteHook",
+        "f-component is required unless explicit headless behavior is intentionally supported",
+        "mix test passes with render tests for all three helpers"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T02"
+      ],
+      "files_to_create": [
+        "lib/fronix/component.ex",
+        "test/fronix_component_test.exs"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T04",
+      "title": "Add shared props view and component shortcut generation",
+      "description": "Implement Fronix.SharedPropsView and Fronix.Components. SharedPropsView should inject f-socket and configured shared props into Fronix component tags during HEEX compilation. Components should generate shortcut functions from framework-specific component roots and extensions: .vue, .jsx/.tsx, and .svelte.",
+      "definition_of_done": [
+        "Fronix.SharedPropsView injects f-socket when missing",
+        "Shared props configuration supports atom, source-target, and nested source path forms",
+        "Fronix.Components can generate shortcuts for Vue, React, and Svelte component files",
+        "Shortcut functions call the correct framework helper",
+        "mix test passes with SharedPropsView and shortcut-generation tests"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T03"
+      ],
+      "files_to_create": [
+        "lib/fronix/shared_props_view.ex",
+        "lib/fronix/components.ex",
+        "test/fronix_shared_props_view_test.exs",
+        "test/fronix_components_test.exs"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T05",
+      "title": "Implement frontend core runtime, registry, and hook factory",
+      "description": "Build framework-neutral frontend core. Implement data-fronix-* attribute parsing, JSON patch application, patchable runtime primitives, active hook registry by id, LiveView hook factory, live handle shape, pushEvent/pass-through helpers, and lifecycle tests. Core must not import Vue, React, or Svelte.",
+      "definition_of_done": [
+        "assets/core imports no framework packages",
+        "Core can parse initial props and patch payloads from data-fronix-* attributes",
+        "Core can apply JSON Patch operations to a runtime object",
+        "Core registers and unregisters active hooks by element id",
+        "Core hook factory delegates mount, update, destroy, and render concerns to an adapter",
+        "npm test passes with core unit tests"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T03"
+      ],
+      "files_to_create": [
+        "assets/core/attrs.ts",
+        "assets/core/hook.ts",
+        "assets/core/json_patch.ts",
+        "assets/core/live.ts",
+        "assets/core/registry.ts",
+        "assets/core/runtime.ts",
+        "assets/core/types.ts",
+        "assets/core/utils.ts",
+        "assets/core/attrs.test.ts",
+        "assets/core/json_patch.test.ts",
+        "assets/core/runtime.test.ts",
+        "assets/core/registry.test.ts",
+        "assets/core/hook.test.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T06",
+      "title": "Implement Vue adapter with SSR entrypoint",
+      "description": "Port the minimum Vue adapter from LiveVue onto Fronix core. Implement createLiveVue returning hooks, Vue runtime creation, mount/hydrate/update/destroy behavior, provide/inject live handle, $live template convenience, and Vue server render entrypoint. Do not port forms, uploads, slots, or injection in this task.",
+      "definition_of_done": [
+        "createLiveVue returns an object with hooks containing FronixVueHook",
+        "Vue adapter mounts non-SSR components and hydrates SSR markup",
+        "Vue runtime updates reactively when core applies patches",
+        "Vue server entrypoint renders a component to HTML",
+        "npm test passes with Vue adapter client and server tests"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T05"
+      ],
+      "files_to_create": [
+        "assets/vue/adapter.ts",
+        "assets/vue/index.ts",
+        "assets/vue/server.ts",
+        "assets/vue/use_live.ts",
+        "assets/vue/adapter.test.ts",
+        "assets/vue/server.test.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T07",
+      "title": "Build Phoenix E2E harness and Vue basic SSR test",
+      "description": "Create the reusable E2E harness: Phoenix endpoint, router, layouts, health check, Playwright config, Vite config, SSR build command, and a first Vue basic component feature. The first feature should prove server render, hydration, prop display, and pushEvent from Vue to LiveView.",
+      "definition_of_done": [
+        "npm run e2e:build builds browser and SSR assets for Vue",
+        "npm run e2e:test runs Playwright against the local Phoenix endpoint",
+        "Vue basic E2E verifies initial SSR HTML is present before LiveView sync where practical",
+        "Vue basic E2E verifies hydrated interaction updates LiveView state",
+        "mix test and npm test still pass"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T04",
+        "T06"
+      ],
+      "files_to_create": [
+        "test/e2e/test_helper.exs",
+        "test/e2e/playwright.config.ts",
+        "test/e2e/vite.config.ts",
+        "test/e2e/js/vue_app.ts",
+        "test/e2e/js/vue_server.ts",
+        "test/e2e/support/utils.ts",
+        "test/e2e/features/basic/live.ex",
+        "test/e2e/features/basic/basic.spec.ts",
+        "test/e2e/features/basic/vue/Counter.vue"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T08",
+      "title": "Implement React adapter with SSR and E2E basic parity",
+      "description": "Implement createLiveReact using Fronix core. Add React runtime, context/native hook APIs, mount/hydrate/update/destroy behavior, and React server renderer. Extend the E2E harness with a React browser and server entry, route namespace, and the same basic feature assertions used by Vue.",
+      "definition_of_done": [
+        "createLiveReact returns an object with hooks containing FronixReactHook",
+        "React adapter supports SSR render and hydration",
+        "React basic E2E passes with the same observable behavior as Vue basic E2E",
+        "Core does not import React",
+        "mix test, npm test, and npm run e2e:test pass for Vue and React projects"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T07"
+      ],
+      "files_to_create": [
+        "assets/react/adapter.tsx",
+        "assets/react/index.tsx",
+        "assets/react/server.tsx",
+        "assets/react/use_live.ts",
+        "assets/react/adapter.test.tsx",
+        "assets/react/server.test.tsx",
+        "test/e2e/js/react_app.tsx",
+        "test/e2e/js/react_server.tsx",
+        "test/e2e/features/basic/react/Counter.tsx"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T09",
+      "title": "Implement Svelte adapter with SSR and E2E basic parity",
+      "description": "Implement createLiveSvelte using Fronix core. Add Svelte runtime, context/store-style live access, mount/hydrate/update/destroy behavior, and Svelte server renderer. Extend the E2E harness with Svelte browser and server entries and the same basic feature assertions used by Vue and React.",
+      "definition_of_done": [
+        "createLiveSvelte returns an object with hooks containing FronixSvelteHook",
+        "Svelte adapter supports SSR render and hydration",
+        "Svelte basic E2E passes with the same observable behavior as Vue and React",
+        "Core does not import Svelte",
+        "mix test, npm test, and npm run e2e:test pass for Vue, React, and Svelte projects"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T08"
+      ],
+      "files_to_create": [
+        "assets/svelte/adapter.ts",
+        "assets/svelte/index.ts",
+        "assets/svelte/server.ts",
+        "assets/svelte/live.ts",
+        "assets/svelte/adapter.test.ts",
+        "assets/svelte/server.test.ts",
+        "test/e2e/js/svelte_app.ts",
+        "test/e2e/js/svelte_server.ts",
+        "test/e2e/features/basic/svelte/Counter.svelte"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T10",
+      "title": "Add prop diffs and LiveStream patch support across adapters",
+      "description": "Implement backend prop diff generation with Jsonpatch, frontend compressed patch decoding, and Phoenix LiveStream patch generation/application. Add E2E features for prop diffs and streams across Vue, React, and Svelte. This task should not add slots or f-on events.",
+      "definition_of_done": [
+        "Backend emits data-fronix-props-diff after initial connected updates when f-diff is enabled",
+        "Backend emits data-fronix-streams-diff for Phoenix LiveStream inserts, deletes, resets, limits, and update-only operations",
+        "Frontend core applies prop and stream patches without replacing adapter runtime objects unnecessarily",
+        "Vue, React, and Svelte prop-diff E2E tests pass",
+        "Vue, React, and Svelte stream E2E tests pass",
+        "mix test, npm test, and npm run e2e:test pass"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T09"
+      ],
+      "files_to_create": [
+        "lib/fronix/diff.ex",
+        "lib/fronix/stream_diff.ex",
+        "test/fronix_diff_test.exs",
+        "test/fronix_stream_diff_test.exs",
+        "assets/core/streams.ts",
+        "assets/core/streams.test.ts",
+        "test/e2e/features/prop_diff/live.ex",
+        "test/e2e/features/prop_diff/prop_diff.spec.ts",
+        "test/e2e/features/stream/live.ex",
+        "test/e2e/features/stream/stream.spec.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T11",
+      "title": "Add live helper APIs for events, replies, navigation, and connection state",
+      "description": "Add adapter-native helper APIs for LiveView integration primitives. Vue and React can expose useLive, useLiveEvent, useEventReply, useLiveNavigation, and useLiveConnection. Svelte should expose equivalent native APIs using context/stores/actions where appropriate rather than forcing useX naming. Add E2E tests for server-to-client events, client pushEvent replies, navigation, and reconnect/connection state where practical.",
+      "definition_of_done": [
+        "No f-on or v-on backend event-handler protocol is introduced",
+        "Each adapter exposes a native way to access the live handle",
+        "Each adapter can register and clean up server event handlers",
+        "Each adapter can call pushEvent and receive replies",
+        "E2E event/reply tests pass for Vue, React, and Svelte",
+        "mix test, npm test, and npm run e2e:test pass"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T10"
+      ],
+      "files_to_create": [
+        "assets/core/events.ts",
+        "assets/core/events.test.ts",
+        "assets/vue/use_live_event.ts",
+        "assets/vue/use_event_reply.ts",
+        "assets/vue/use_live_navigation.ts",
+        "assets/vue/use_live_connection.ts",
+        "assets/react/use_live_event.ts",
+        "assets/react/use_event_reply.ts",
+        "assets/react/use_live_navigation.ts",
+        "assets/react/use_live_connection.ts",
+        "assets/svelte/live_event.ts",
+        "assets/svelte/event_reply.ts",
+        "assets/svelte/navigation.ts",
+        "assets/svelte/connection.ts",
+        "test/e2e/features/event/live.ex",
+        "test/e2e/features/event/event.spec.ts",
+        "test/e2e/features/event_reply/live.ex",
+        "test/e2e/features/event_reply/event_reply.spec.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T12",
+      "title": "Add backend form support and first adapter form helpers",
+      "description": "Implement backend form/change encoding and Ecto changeset error support in Fronix. Port Vue form helpers first and add React helper if the API is straightforward. For Svelte, add either minimal native store helpers or explicitly document it as pending while backend support is tested. Add form E2E coverage at least for Vue and one non-Vue adapter if implemented.",
+      "definition_of_done": [
+        "Backend can encode LiveView form data and changeset errors through Fronix.Encoder or dedicated form helpers",
+        "Vue form helper supports field value, errors, dirty/touched, submit, reset, and validation events",
+        "At least one form E2E test proves server-side validation round trips through Fronix",
+        "React/Svelte form support status is explicitly represented in docs and tests",
+        "mix test, npm test, and npm run e2e:test pass"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T11"
+      ],
+      "files_to_create": [
+        "lib/fronix/form.ex",
+        "test/fronix_form_test.exs",
+        "assets/vue/use_live_form.ts",
+        "assets/vue/use_live_form.test.ts",
+        "assets/react/use_live_form.ts",
+        "assets/react/use_live_form.test.ts",
+        "assets/svelte/live_form.ts",
+        "test/e2e/features/form/live.ex",
+        "test/e2e/features/form/form.spec.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T13",
+      "title": "Add upload helpers and E2E upload coverage",
+      "description": "Implement low-level DOM/LiveView upload helpers in frontend core and adapter-native upload APIs. Port Vue upload behavior first. Add React/Svelte APIs only if they can be made native without overfitting; otherwise document them as pending. Add E2E coverage for manual and auto upload modes for every adapter marked supported.",
+      "definition_of_done": [
+        "Core upload helper creates LiveView-compatible hidden file inputs without framework imports",
+        "Vue upload helper supports show file picker, add files, submit, cancel, clear, progress, and valid state",
+        "Upload E2E passes for every adapter marked supported",
+        "Unsupported adapter upload status is documented explicitly",
+        "mix test, npm test, and npm run e2e:test pass"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T12"
+      ],
+      "files_to_create": [
+        "assets/core/uploads.ts",
+        "assets/core/uploads.test.ts",
+        "assets/vue/use_live_upload.ts",
+        "assets/vue/use_live_upload.test.ts",
+        "assets/react/use_live_upload.ts",
+        "assets/svelte/live_upload.ts",
+        "test/e2e/features/upload/live.ex",
+        "test/e2e/features/upload/upload.spec.ts"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    },
+    {
+      "id": "T14",
+      "title": "Implement installer and harden docs, boundaries, and CI",
+      "description": "Add mix fronix.install <adapter> using Igniter or the chosen installer approach. The installer should configure Phoenix Vite, package.json dependencies, app/bootstrap files, LiveSocket hooks via liveFronix.hooks, SSR entries, backend config, and a demo component. Add import-boundary tests, README docs, adapter support matrix, and GitHub Actions CI that runs mix test, npm test, and E2E tests.",
+      "definition_of_done": [
+        "mix fronix.install vue generates a working Phoenix/Vite/Vue setup in an installer test fixture",
+        "mix fronix.install react generates a working Phoenix/Vite/React setup in an installer test fixture",
+        "mix fronix.install svelte generates a working Phoenix/Vite/Svelte setup in an installer test fixture",
+        "Import-boundary tests fail if core imports Vue, React, or Svelte, or if adapters import each other",
+        "README documents installation, f-* attrs, SSR, adapter support status, and testing",
+        "GitHub Actions CI runs mix test, npm test, and npm run e2e:test",
+        "All local test commands pass"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "T13"
+      ],
+      "files_to_create": [
+        "lib/mix/tasks/fronix.install.ex",
+        "test/mix/tasks/fronix_install_test.exs",
+        "test/fixtures/installer/README.md",
+        "assets/import_boundaries.test.ts",
+        ".github/workflows/ci.yml",
+        "guides/installation.md",
+        "guides/adapter_support.md"
+      ],
+      "files_to_move": [],
+      "files_to_delete": [],
+      "notes": ""
+    }
+  ]
+}
